@@ -1,5 +1,8 @@
 ﻿# Mail Signature Generator Boilerplate
 
+[![Github All Releases](https://img.shields.io/github/downloads/ProtocolNebula/Mail-Signature-Generator-Boilerplate-JS/total.svg)]()
+
+
 This is a Boilerplate to Generator HTML 5 Mail Signature.
 
 (This can have multiple uses, not only mails signature).
