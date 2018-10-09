@@ -2,6 +2,10 @@
 
 This is a Boilerplate to Generator HTML 5 Mail Signature.
 
+(This can have multiple uses, not only mails signature).
+
+[Try the example online now!](https://protocolnebula.github.io/Mail-Signature-Generator-Boilerplate-JS/index.html)
+
 **STAND-ALONE MODE IS WIP**
 
 ## Why I need this?
