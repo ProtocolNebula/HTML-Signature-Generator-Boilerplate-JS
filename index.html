@@ -1,0 +1,85 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Easy Customizable Signature Generator Boilerplate</title>
+        <link rel="stylesheet" type="text/css" href="assets/css/style.css">
+        
+        <!-- Bootstrap Framework -->
+        <link rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css">
+        <script src="assets/js/bootstrap.bundle.min.js" type="text/javascript"></script>
+
+        <!-- Dependences -->
+        <script src="assets/js/helpers.js" type="text/javascript"></script>
+        <script src="assets/js/mustache.min.js" type="text/javascript"></script>
+
+        <!-- Configurable files -->
+        <script src="configurable_struct/middleware.js" type="text/javascript"></script>
+        <script src="configurable_struct/settings.js" type="text/javascript"></script>
+        <script src="configurable_struct/template.js" type="text/javascript"></script>
+        <script src="configurable_struct/form.js" type="text/javascript"></script>
+
+        <!-- App -->
+        <script src="assets/js/app.js" type="text/javascript"></script>
+	</head>
+	<body>
+        <div class="container">
+
+            <h1>Signature Generator</h1>
+            
+            <div class="row">
+                <!-- FORM -->
+                <div class="col-12 col-md-6">
+                    <div class="card">
+                        <h2 class="card-header">Fill the form</h2>
+                        <div class="card-body">
+                            <form id="form">
+                            </form>
+                        </div>
+                        <div class="card-footer">
+                            <button onclick="generateSignature()" class="btn btn-success" type="submit">Generate Signature</button>
+                        </div>
+                    </div>
+                </div>
+        
+                <!-- GENERATED SIGNATURE -->
+                <div class="col-12 col-md-6">
+                    <div class="card">
+                        <h2 class="card-header">Your generated signature</h2>
+                        <div class="card-body">
+                            <div id="signature" class="signature_container" style="font-family: arial">
+                            </div>
+                        </div>
+                        <div id="actions" class="card-footer">
+                            <button onClick='copyText(document.getElementById("signature"));' class="btn btn-success">Copy Signature</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SIGNATURE LINK -->
+                <div class="col-12 col-md-12">
+                    <div class="card">
+                        <h2 class="card-header">Signature Link</h2>
+                        <div class="card-body">
+                            <div id="signature-link">
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button onClick='copyText(document.getElementById("signature-link"));' class="btn btn-primary">Copy Link</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr />
+
+            <div>Created by <a href="https://racs.es">Ruben Arroyo Ceruelo</a> - <a href="https://github.com/ProtocolNebula">GitHub</a></div>
+            <br />
+            <div>Icons made by 
+                <a href="https://www.flaticon.com/authors/smashicons" title="Smashicons">Smashicons</a>,  
+                <a href="http://www.freepik.com" title="Freepik">Freepik</a> and  
+                <a href="https://www.flaticon.com/authors/yannick" title="Yannick">Yannick</a> 
+                from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a>
+            </div>
+        </div>
+	</body>
+</html>
