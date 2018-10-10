@@ -1,5 +1,9 @@
-.card {
+h1 {
+    margin-top: 20px;
     margin-bottom: 20px;
+}
+.card {
+    margin-bottom: 30px;
 }
 
 .signature_container {
