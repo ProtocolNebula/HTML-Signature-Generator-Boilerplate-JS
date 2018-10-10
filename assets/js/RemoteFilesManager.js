@@ -14,32 +14,36 @@ const RemoteFilesManager = function() {
  * Get a remote file via GET using AJAX
  * @link https://stackoverflow.com/questions/6150289/how-to-convert-image-into-base64-string-using-javascript
  * @param {string} url URL to retrieve
- * @param {*} callback Function to process the result
+ * @param {*} callback Function to process the result IF FILE IS NOT ALREADY LOADED
  * @param {number} retry Total retries if fail (timeout or error)
  * @param {*} callbackError Function to process if error (no more retries or retry=0)
  * @example 
  *  cacheFile.getFile('https://www.gravatar.com/avatar/d50c83cc0c6523b4d3f6085295c953e0', function(dataUrl) {
  *      console.log('RESULT:', dataUrl);
  *  })
- * @returns {string|null} If file is already in cache, it will return the string of file
+ * @returns {string|false|null} If file is already in cache, it will return the string of file or false if was a loading error
  */
-CacheFiles.prototype.getFile = function (url, callback, retry, callbackError) {
-    if (this.cachedFiles[url]) {
+RemoteFilesManager.prototype.getFile = function (url, callback, retry, callbackError) {
+    if (this.cachedFiles[url] !== undefined && this.cachedFiles[url] !== null) {
         return this.cachedFiles[url];
     }
 
     // Put file status in loading
-    this.cachedFiles[url] = null;
+    if (this.cachedFiles[url] === undefined) {
+        this.cachedFiles[url] = null;
+    }
 
     try {
         var xhr = new XMLHttpRequest();
         xhr.onload = function() {
             var reader = new FileReader();
             reader.onloadend = function() {
-                callback(url, reader.result);
-            }
+                var result = reader.result || false;
+                this.cachedFiles[url] = result;
+                callback(url, result);
+            }.bind(this);
             reader.readAsDataURL(xhr.response);
-        };
+        }.bind(this);
     
         // Added by Ruben Arroyo: Minimal error control
         var onError = function (e) {
@@ -68,4 +72,24 @@ CacheFiles.prototype.getFile = function (url, callback, retry, callbackError) {
 }
 
 
-CacheFiles.prototype.allFilesLoaded
+/**
+ * Check if all files are ready (!== null)
+ */
+RemoteFilesManager.prototype.allFilesLoaded = function() {
+    var keys = Object.keys(this.cachedFiles);
+
+    for (n = 0; n < keys.length; n++) {
+        var element = this.cachedFiles[keys[n]];
+        if (element == null) return false;
+    }
+    return true;
+}
+
+/**
+ * Set all "false" (error) elements to "null"
+ */
+RemoteFilesManager.prototype.resetErrorFiles = function() {
+    Object.keys(this.cachedFiles).forEach(function(key) {
+        if (this.cachedFiles[key] == null) this.cachedFiles[key] = null;
+    })
+}

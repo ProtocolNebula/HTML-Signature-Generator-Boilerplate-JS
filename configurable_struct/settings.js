@@ -9,7 +9,7 @@ var SETTINGS = {
      *  1: Images will show as URL linked to signature server via http
      *  2: Images will base64 encoded and added as source in the html (stand-alone mode)
      */
-    standaloneMode: 1, // WIP, CURRENTLY ONLY "1" is working
+    standaloneMode: 0,
 
     /**
      * This will be used to generate automatically the form, use current fields or example configurable fields to generate new ones
@@ -26,25 +26,26 @@ var SETTINGS = {
             name: 'name', // Will be used as var name (key)
             displayText: 'Full Name',
             defaultValue: '',
-            type: 'string', // "type" input (if hidden = false)
+            type: 'text', // "type" input / (text|checkbox)
+            //isChecked: true, // (boolean) only for checkbox
         },
         {
             name: 'professionalCategory',
             displayText: 'Professional Category',
             defaultValue: 'Full Stack Senior',
-            type: 'string',
+            type: 'text',
         },
         {
             name: 'phone',
             displayText: 'Phone',
             defaultValue: '+34 ',
-            type: 'string',
+            type: 'text',
         },
         {
             name: 'email',
             displayText: 'Email',
             defaultValue: '@mycompany.com',
-            type: 'string',
+            type: 'text',
         }
     ],
 
@@ -94,18 +95,21 @@ var SETTINGS = {
      */
     imageURLNormal: function() {
         return function(url, render) {
-            console.log('normal');
             return render(url);
         }
     },
     
     /**
      * Standalone mode
+     * This will try to load the image from "RemoteFilesManager" (CACHED_FILES), if not loaded yet,
+     * will download and after that will call to App.checkFilesReady to refresh signature
      */
     imageURLStandalone: function(url) {
         return function(url, render) {
-            console.log('standalone');
-            return render(url);
+            var file = CACHED_FILES.getFile(url, APP.checkFilesReady, 3, APP.checkFilesReady);
+            if (file) {
+                return render(file);
+            }
         }
     }
     

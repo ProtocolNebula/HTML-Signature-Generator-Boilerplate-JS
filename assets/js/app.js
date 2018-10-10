@@ -14,9 +14,12 @@ var APP; // Will contain the app instance
 
 var CACHED_FILES = new RemoteFilesManager(); // All files loaded for standalone will added here as pair: URL=>DATA (files don't should be greater than 5kb except logo)
 
-function App(settings) {
+function App(settings, signatureTemplate) {
+    this.signatureTemplate = signatureTemplate;
+    this.data = null; // Temporal variable (reference) used to generate and render signatures
     this.settings = settings;
-    this.init();
+    this.isLoading = false; // Will be true when will wait some async file or is in execution process
+    // this.init();
 }
 
 /**
@@ -27,6 +30,8 @@ App.prototype.init = function() {
 
     // Prepare bind for listeners
     this.generateSignature = this.generateSignature.bind(this);
+    this.renderSignature = this.renderSignature.bind(this);
+    this.checkFilesReady = this.checkFilesReady.bind(this);
 
     // Initialize components
     this.prepareMustache();
@@ -39,22 +44,25 @@ App.prototype.init = function() {
  */
 App.prototype.generateSignature = function() {
     // Load all view elements
-    var data = this.settings;
+    this.isLoading = true;
+    this.data = this.settings;
     var signatureContent = document.getElementById(SIGNATURE_CONTENT_ID);
 
     // Set the form and standalone function
-    data.form = this.getFormValues();
-    data.imageURL = this.getImageLinkMethod(data);
+    this.data.form = this.getFormValues();
+    this.data.imageURL = this.getImageLinkMethod(this.data);
 
     // Hook preGenerateSignature
-    data = AppMiddleware.preGenerateSignature(data);
+    this.data = AppMiddleware.preGenerateSignature(this.data);
 
-    if (!this.renderSignature(SIGNATURE_TEMPLATE, data)) {
-        signatureContent.innerHTML('Generating signature. Please wait...');
+    if (!this.renderSignature()) {
+        signatureContent.innerHTML = 'Generating signature. Please wait...';
+    } else {
+        this.isLoading = false;
     }
 
     // Generate the URL signature
-    this.showURLSignature(data);
+    this.showURLSignature(this.data);
 }
 
 /**
@@ -62,23 +70,33 @@ App.prototype.generateSignature = function() {
  * If is still loading (standalone elements) it will prepare a callback to render once all is loaded (reacalling this function for redraw)
  * @returns {boolean} True if signature is rendered or false if something is loading
  */
-Array.prototype.renderSignature(template, data) {
+App.prototype.renderSignature = function() {
     var signatureContent = document.getElementById(SIGNATURE_CONTENT_ID);
 
-    var signature = Mustache.render(SIGNATURE_TEMPLATE, data);
+    var signature = Mustache.render(this.signatureTemplate, this.data);
 
     // Hook postGenerateSignature
     signature = AppMiddleware.postGenerateSignature(signature);
 
-    if (!this.isStandalone(data) || this.allFilesLoaded()) {
+    if (!this.isStandalone(this.data) || CACHED_FILES.allFilesLoaded()) {
         // All ready, show the signature
         signatureContent.innerHTML = signature;
+        this.isLoading = false;
         return true;
     }
 
-    // Wait until all is loaded
-
+    // Wait until elements is loaded (this method will called through checkFilesReady as callback)
     return false;
+}
+
+/**
+ * This function will be called from CACHED_FILES as callback from "imageURL()""
+ * Basically check if all files are ready (not null) and if true, will call to "renderSignature"
+ */
+App.prototype.checkFilesReady = function() {
+    if (this.isLoading && CACHED_FILES.allFilesLoaded() === true) {
+        this.renderSignature();
+    }
 }
 
 /*
@@ -110,7 +128,7 @@ App.prototype.unregisterListeners = function() {
  */
 App.prototype.prepareMustache = function() {
     Mustache.parse(TEMPLATE_FORM);
-    Mustache.parse(SIGNATURE_TEMPLATE);
+    Mustache.parse(this.signatureTemplate);
 }
 
 /**
@@ -152,7 +170,15 @@ App.prototype.getFormValues = function() {
 
     for (var n = 0; n < elements.length; n++) {
         var element = elements[n];
-        data[element.name] = element.value;
+        
+        switch (element.type) {
+            case "checkbox":
+                data[element.name] = element.checked;
+                break;
+            default:
+                data[element.name] = element.value;
+                break;
+        }
     }
 
     return data;
@@ -225,6 +251,7 @@ App.prototype.isStandalone = function(data) {
 }
 
 // Load on start
+APP = new App(SETTINGS, SIGNATURE_TEMPLATE);
 document.addEventListener('DOMContentLoaded', function(){ 
-    APP = new App(SETTINGS);
+    APP.init();
 }, false);
