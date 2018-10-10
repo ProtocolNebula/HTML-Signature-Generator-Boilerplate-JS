@@ -91,3 +91,16 @@ function toDataURL(url, callback) {
 toDataURL('https://www.gravatar.com/avatar/d50c83cc0c6523b4d3f6085295c953e0', function(dataUrl) {
 console.log('RESULT:', dataUrl)
 })
+
+
+/**
+ * Unregister 
+ * @param {*} elements 
+ * @param {*} event 
+ * @param {*} callback 
+ */
+function unregisterListeners(elements, event, callback, useCapture) {
+    for(var i=0; i < elements.length; i++){
+        elements[i].removeEventListener(event, callback, useCapture || false);
+    }
+}

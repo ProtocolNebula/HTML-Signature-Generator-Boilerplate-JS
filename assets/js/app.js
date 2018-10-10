@@ -7,6 +7,7 @@
  * Global Vars
  */
 var FORM_ID = 'form';
+var FORM_INPUTS = '#'+FORM_ID+' input';
 var SIGNATURE_CONTENT_ID = 'signature';
 var SIGNATURE_URL_ID = 'signature-link';
 var APP; // Will contain the app instance
@@ -22,6 +23,10 @@ function App(settings) {
 App.prototype.init = function() {
     var GET = this.readURL();
 
+    // Prepare bind for listeners
+    this.generateSignature = this.generateSignature.bind(this);
+
+    // Initialize components
     this.prepareMustache();
     this.renderForm(GET.formValues);
     this.generateSignature();
@@ -59,6 +64,26 @@ App.prototype.generateSignature = function() {
  */
 
 /**
+ * Prepare the main listeners for the form
+ * This will unregistrer all listeners before register all again
+ */
+App.prototype.registerListeners = function() {
+    // First unregister all listeners
+    this.unregisterListeners();
+
+    // Then register all again
+    var formInputs = document.querySelectorAll(FORM_INPUTS);
+    for(var i=0; i < formInputs.length; i++){
+        formInputs[i].addEventListener('blur', this.generateSignature, false);
+    }
+}
+
+App.prototype.unregisterListeners = function() {
+    var formInputs = document.querySelectorAll(FORM_INPUTS);
+    unregisterListeners(formInputs, 'blur', this.generateSignature, false);
+}
+
+/**
  * Do all Mustache cache parse
  */
 App.prototype.prepareMustache = function() {
@@ -76,6 +101,7 @@ App.prototype.renderForm = function(restoredData) {
         fields.fields = this.setDefaultValuesToFields(fields.fields, restoredData);
     }
     document.getElementById(FORM_ID).innerHTML = Mustache.render(TEMPLATE_FORM, fields);
+    this.registerListeners();
 }
 
 /**
