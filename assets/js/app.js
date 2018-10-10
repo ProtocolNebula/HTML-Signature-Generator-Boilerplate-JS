@@ -12,6 +12,8 @@ var SIGNATURE_CONTENT_ID = 'signature';
 var SIGNATURE_URL_ID = 'signature-link';
 var APP; // Will contain the app instance
 
+var CACHED_FILES = new RemoteFilesManager(); // All files loaded for standalone will added here as pair: URL=>DATA (files don't should be greater than 5kb except logo)
+
 function App(settings) {
     this.settings = settings;
     this.init();
@@ -38,25 +40,45 @@ App.prototype.init = function() {
 App.prototype.generateSignature = function() {
     // Load all view elements
     var data = this.settings;
-    data.form = this.getFormValues();
+    var signatureContent = document.getElementById(SIGNATURE_CONTENT_ID);
 
-    // Set the standalone methods
+    // Set the form and standalone function
+    data.form = this.getFormValues();
     data.imageURL = this.getImageLinkMethod(data);
 
     // Hook preGenerateSignature
     data = AppMiddleware.preGenerateSignature(data);
-    
-    // Generate the signature
+
+    if (!this.renderSignature(SIGNATURE_TEMPLATE, data)) {
+        signatureContent.innerHTML('Generating signature. Please wait...');
+    }
+
+    // Generate the URL signature
+    this.showURLSignature(data);
+}
+
+/**
+ * Try to render the signature into SIGNATURE_CONTENT_ID
+ * If is still loading (standalone elements) it will prepare a callback to render once all is loaded (reacalling this function for redraw)
+ * @returns {boolean} True if signature is rendered or false if something is loading
+ */
+Array.prototype.renderSignature(template, data) {
+    var signatureContent = document.getElementById(SIGNATURE_CONTENT_ID);
+
     var signature = Mustache.render(SIGNATURE_TEMPLATE, data);
 
     // Hook postGenerateSignature
     signature = AppMiddleware.postGenerateSignature(signature);
 
-    // Show signature
-    document.getElementById(SIGNATURE_CONTENT_ID).innerHTML = signature;
+    if (!this.isStandalone(data) || this.allFilesLoaded()) {
+        // All ready, show the signature
+        signatureContent.innerHTML = signature;
+        return true;
+    }
 
-    // Generate the URL signature
-    this.showURLSignature(data);
+    // Wait until all is loaded
+
+    return false;
 }
 
 /*
@@ -191,8 +213,15 @@ App.prototype.readURL = function() {
  * If standalone, it will incrustate the image in base64 instead a normal src link
  */
 App.prototype.getImageLinkMethod = function(data) {
-    var standalone = (data.standaloneMode === 0 && data.form.standalone !== undefined && data.form.standalone || data.standaloneMode === 2);
-    return (standalone) ? data.imageURLStandalone : data.imageURLNormal;
+    return (this.isStandalone(data)) ? data.imageURLStandalone : data.imageURLNormal;
+}
+
+/**
+ * Check if data is in standalone mode or not
+ * @param {*} data 
+ */
+App.prototype.isStandalone = function(data) {
+    return (data.standaloneMode === 0 && data.form.standalone || data.standaloneMode === 2);
 }
 
 // Load on start
