@@ -1,3 +1,8 @@
 .card {
     margin-bottom: 20px;
 }
+
+.signature_container {
+    max-width: 100%;
+    overflow: auto;
+}
