@@ -7,49 +7,96 @@
  * Global Vars
  */
 var FORM_ID = 'form';
+var FORM_INPUTS = '#'+FORM_ID+' input';
 var SIGNATURE_CONTENT_ID = 'signature';
 var SIGNATURE_URL_ID = 'signature-link';
+var APP; // Will contain the app instance
 
-/*
- * Main Methods
- */
+var CACHED_FILES = new RemoteFilesManager(); // All files loaded for standalone will added here as pair: URL=>DATA (files don't should be greater than 5kb except logo)
+
+function App(settings, signatureTemplate) {
+    this.signatureTemplate = signatureTemplate;
+    this.data = null; // Temporal variable (reference) used to generate and render signatures
+    this.settings = settings;
+    this.isLoading = false; // Will be true when will wait some async file or is in execution process
+    // this.init();
+}
 
 /**
  * This initialize the app
  */
-function init() {
-    var GET = readURL();
+App.prototype.init = function() {
+    var GET = this.readURL();
 
-    prepareMustache();
-    renderForm(GET.formValues);
-    generateSignature();
+    // Prepare bind for listeners
+    this.generateSignature = this.generateSignature.bind(this);
+    this.renderSignature = this.renderSignature.bind(this);
+    this.checkFilesReady = this.checkFilesReady.bind(this);
+
+    // Initialize components
+    this.prepareMustache();
+    this.renderForm(GET.formValues);
+    this.generateSignature();
 }
 
 /**
  * Load all data and render signature
  */
-function generateSignature() {
+App.prototype.generateSignature = function() {
     // Load all view elements
-    var data = ADDITIONAL_INFO;
-    data.form = getFormValues();
+    this.isLoading = true;
+    this.data = this.settings;
+    var signatureContent = document.getElementById(SIGNATURE_CONTENT_ID);
 
-    // Set the standalone methods
-    data.imageURL = getImageLinkMethod(data);
+    // Set the form and standalone function
+    this.data.form = this.getFormValues();
+    this.data.imageURL = this.getImageLinkMethod(this.data);
 
     // Hook preGenerateSignature
-    data = preGenerateSignature(data);
-    
-    // Generate the signature
-    var signature = Mustache.render(SIGNATURE_TEMPLATE, data);
+    this.data = AppMiddleware.preGenerateSignature(this.data);
 
-    // Hook postGenerateSignature
-    signature = postGenerateSignature(signature);
-
-    // Show signature
-    document.getElementById(SIGNATURE_CONTENT_ID).innerHTML = signature;
+    if (!this.renderSignature()) {
+        signatureContent.innerHTML = 'Generating signature. Please wait...';
+    } else {
+        this.isLoading = false;
+    }
 
     // Generate the URL signature
-    showURLSignature(data);
+    this.showURLSignature(this.data);
+}
+
+/**
+ * Try to render the signature into SIGNATURE_CONTENT_ID
+ * If is still loading (standalone elements) it will prepare a callback to render once all is loaded (reacalling this function for redraw)
+ * @returns {boolean} True if signature is rendered or false if something is loading
+ */
+App.prototype.renderSignature = function() {
+    var signatureContent = document.getElementById(SIGNATURE_CONTENT_ID);
+
+    var signature = Mustache.render(this.signatureTemplate, this.data);
+
+    // Hook postGenerateSignature
+    signature = AppMiddleware.postGenerateSignature(signature);
+
+    if (!this.isStandalone(this.data) || CACHED_FILES.allFilesLoaded()) {
+        // All ready, show the signature
+        signatureContent.innerHTML = signature;
+        this.isLoading = false;
+        return true;
+    }
+
+    // Wait until elements is loaded (this method will called through checkFilesReady as callback)
+    return false;
+}
+
+/**
+ * This function will be called from CACHED_FILES as callback from "imageURL()""
+ * Basically check if all files are ready (not null) and if true, will call to "renderSignature"
+ */
+App.prototype.checkFilesReady = function() {
+    if (this.isLoading && CACHED_FILES.allFilesLoaded() === true) {
+        this.renderSignature();
+    }
 }
 
 /*
@@ -57,23 +104,44 @@ function generateSignature() {
  */
 
 /**
+ * Prepare the main listeners for the form
+ * This will unregistrer all listeners before register all again
+ */
+App.prototype.registerListeners = function() {
+    // First unregister all listeners
+    this.unregisterListeners();
+
+    // Then register all again
+    var formInputs = document.querySelectorAll(FORM_INPUTS);
+    for(var i=0; i < formInputs.length; i++){
+        formInputs[i].addEventListener('blur', this.generateSignature, false);
+    }
+}
+
+App.prototype.unregisterListeners = function() {
+    var formInputs = document.querySelectorAll(FORM_INPUTS);
+    unregisterListeners(formInputs, 'blur', this.generateSignature, false);
+}
+
+/**
  * Do all Mustache cache parse
  */
-function prepareMustache() {
+App.prototype.prepareMustache = function() {
     Mustache.parse(TEMPLATE_FORM);
-    Mustache.parse(SIGNATURE_TEMPLATE);
+    Mustache.parse(this.signatureTemplate);
 }
 
 /**
  * Show edition form
  * @param {*} restoredData Data restored from "readURL", if empty will show "defaultValue"
  */
-function renderForm(restoredData) {
-    var fields = cloneObject(FORM_FIELDS);
+App.prototype.renderForm = function(restoredData) {
+    var fields = cloneObject(this.settings);
     if (restoredData !== undefined && restoredData) {
-        fields.fields = setDefaultValuesToFields(fields.fields, restoredData);
+        fields.fields = this.setDefaultValuesToFields(fields.fields, restoredData);
     }
     document.getElementById(FORM_ID).innerHTML = Mustache.render(TEMPLATE_FORM, fields);
+    this.registerListeners();
 }
 
 /**
@@ -82,7 +150,7 @@ function renderForm(restoredData) {
  * @param {*} fields Original Form fields
  * @param {*} values Values to restore
  */
-function setDefaultValuesToFields(fields, values) {
+App.prototype.setDefaultValuesToFields = function(fields, values) {
     for (var n = 0; n < fields.length; n++) {
         var fieldName = fields[n].name;
         if (typeof values[fieldName] !== "undefined") {
@@ -95,14 +163,22 @@ function setDefaultValuesToFields(fields, values) {
 /**
  * Read the form and return all elements
  */
-function getFormValues() {
+App.prototype.getFormValues = function() {
     var data = {};
     var fields = document.getElementById(FORM_ID).elements;
     var elements = Object.values(fields);
 
     for (var n = 0; n < elements.length; n++) {
         var element = elements[n];
-        data[element.name] = element.value;
+        
+        switch (element.type) {
+            case "checkbox":
+                data[element.name] = element.checked;
+                break;
+            default:
+                data[element.name] = element.value;
+                break;
+        }
     }
 
     return data;
@@ -114,10 +190,10 @@ function getFormValues() {
  * @param {boolean} changeURL Default TRUE. it will change the current user URL
  * @returns {string} Generated url
  */
-function showURLSignature(data, changeURL) {
+App.prototype.showURLSignature = function(data, changeURL) {
     if (changeURL === undefined) changeURL = true;
     
-    var url = generateURL(data.form);
+    var url = this.generateURL(data.form);
 
     // Set the url in address bar
     if (changeURL) {
@@ -135,7 +211,7 @@ function showURLSignature(data, changeURL) {
  * Generate an URL with form data
  * @param {*} elements Object containing all elements to add to url
  */
-function generateURL(formValues) {
+App.prototype.generateURL = function(formValues) {
     // For future improvements
     var uri = {
         formValues: formValues,
@@ -149,7 +225,7 @@ function generateURL(formValues) {
  * @returns {*} All data in $_GET. Willcontain:
  *  - formValues: Values read from Form (to reload a created signature)
  */
-function readURL() {
+App.prototype.readURL = function() {
     try {
         var uri = window.location.search.substr(1);
         return decodeURI(uri);
@@ -162,12 +238,20 @@ function readURL() {
  * Return the correct method to use imageURL() depending of standalone method
  * If standalone, it will incrustate the image in base64 instead a normal src link
  */
-function getImageLinkMethod(data) {
-    var standalone = (data.form.standaloneMode === 0 && data.form.standalone !== undefined && data.form.standalone || data.standaloneMode === 2);
-    return (standalone) ? data.imageURLStandalone : data.imageURLNormal;
+App.prototype.getImageLinkMethod = function(data) {
+    return (this.isStandalone(data)) ? data.imageURLStandalone : data.imageURLNormal;
+}
+
+/**
+ * Check if data is in standalone mode or not
+ * @param {*} data 
+ */
+App.prototype.isStandalone = function(data) {
+    return (data.standaloneMode === 0 && data.form.standalone || data.standaloneMode === 2);
 }
 
 // Load on start
+APP = new App(SETTINGS, SIGNATURE_TEMPLATE);
 document.addEventListener('DOMContentLoaded', function(){ 
-    init();
+    APP.init();
 }, false);

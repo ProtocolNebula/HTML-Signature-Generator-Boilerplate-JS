@@ -61,5 +61,22 @@ function decodeURI(string) {
  * Return base URL to the file .html
  */
 function getBaseURL() {
-    return window.location.origin + window.location.pathname;
+    var origin = window.location.origin;
+    if (!origin || origin == "null") {
+        origin = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port: '');
+    }
+    return origin + window.location.pathname;
+}
+
+
+/**
+ * Unregister 
+ * @param {*} elements 
+ * @param {*} event 
+ * @param {*} callback 
+ */
+function unregisterListeners(elements, event, callback, useCapture) {
+    for(var i=0; i < elements.length; i++){
+        elements[i].removeEventListener(event, callback, useCapture || false);
+    }
 }
