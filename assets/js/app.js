@@ -9,47 +9,49 @@
 var FORM_ID = 'form';
 var SIGNATURE_CONTENT_ID = 'signature';
 var SIGNATURE_URL_ID = 'signature-link';
+var APP; // Will contain the app instance
 
-/*
- * Main Methods
- */
+function App(settings) {
+    this.settings = settings;
+    this.init();
+}
 
 /**
  * This initialize the app
  */
-function init() {
-    var GET = readURL();
+App.prototype.init = function() {
+    var GET = this.readURL();
 
-    prepareMustache();
-    renderForm(GET.formValues);
-    generateSignature();
+    this.prepareMustache();
+    this.renderForm(GET.formValues);
+    this.generateSignature();
 }
 
 /**
  * Load all data and render signature
  */
-function generateSignature() {
+App.prototype.generateSignature = function() {
     // Load all view elements
-    var data = ADDITIONAL_INFO;
-    data.form = getFormValues();
+    var data = this.settings;
+    data.form = this.getFormValues();
 
     // Set the standalone methods
-    data.imageURL = getImageLinkMethod(data);
+    data.imageURL = this.getImageLinkMethod(data);
 
     // Hook preGenerateSignature
-    data = preGenerateSignature(data);
+    data = AppMiddleware.preGenerateSignature(data);
     
     // Generate the signature
     var signature = Mustache.render(SIGNATURE_TEMPLATE, data);
 
     // Hook postGenerateSignature
-    signature = postGenerateSignature(signature);
+    signature = AppMiddleware.postGenerateSignature(signature);
 
     // Show signature
     document.getElementById(SIGNATURE_CONTENT_ID).innerHTML = signature;
 
     // Generate the URL signature
-    showURLSignature(data);
+    this.showURLSignature(data);
 }
 
 /*
@@ -59,7 +61,7 @@ function generateSignature() {
 /**
  * Do all Mustache cache parse
  */
-function prepareMustache() {
+App.prototype.prepareMustache = function() {
     Mustache.parse(TEMPLATE_FORM);
     Mustache.parse(SIGNATURE_TEMPLATE);
 }
@@ -68,10 +70,10 @@ function prepareMustache() {
  * Show edition form
  * @param {*} restoredData Data restored from "readURL", if empty will show "defaultValue"
  */
-function renderForm(restoredData) {
-    var fields = cloneObject(FORM_FIELDS);
+App.prototype.renderForm = function(restoredData) {
+    var fields = cloneObject(this.settings);
     if (restoredData !== undefined && restoredData) {
-        fields.fields = setDefaultValuesToFields(fields.fields, restoredData);
+        fields.fields = this.setDefaultValuesToFields(fields.fields, restoredData);
     }
     document.getElementById(FORM_ID).innerHTML = Mustache.render(TEMPLATE_FORM, fields);
 }
@@ -82,7 +84,7 @@ function renderForm(restoredData) {
  * @param {*} fields Original Form fields
  * @param {*} values Values to restore
  */
-function setDefaultValuesToFields(fields, values) {
+App.prototype.setDefaultValuesToFields = function(fields, values) {
     for (var n = 0; n < fields.length; n++) {
         var fieldName = fields[n].name;
         if (typeof values[fieldName] !== "undefined") {
@@ -95,7 +97,7 @@ function setDefaultValuesToFields(fields, values) {
 /**
  * Read the form and return all elements
  */
-function getFormValues() {
+App.prototype.getFormValues = function() {
     var data = {};
     var fields = document.getElementById(FORM_ID).elements;
     var elements = Object.values(fields);
@@ -114,10 +116,10 @@ function getFormValues() {
  * @param {boolean} changeURL Default TRUE. it will change the current user URL
  * @returns {string} Generated url
  */
-function showURLSignature(data, changeURL) {
+App.prototype.showURLSignature = function(data, changeURL) {
     if (changeURL === undefined) changeURL = true;
     
-    var url = generateURL(data.form);
+    var url = this.generateURL(data.form);
 
     // Set the url in address bar
     if (changeURL) {
@@ -135,7 +137,7 @@ function showURLSignature(data, changeURL) {
  * Generate an URL with form data
  * @param {*} elements Object containing all elements to add to url
  */
-function generateURL(formValues) {
+App.prototype.generateURL = function(formValues) {
     // For future improvements
     var uri = {
         formValues: formValues,
@@ -149,7 +151,7 @@ function generateURL(formValues) {
  * @returns {*} All data in $_GET. Willcontain:
  *  - formValues: Values read from Form (to reload a created signature)
  */
-function readURL() {
+App.prototype.readURL = function() {
     try {
         var uri = window.location.search.substr(1);
         return decodeURI(uri);
@@ -162,12 +164,12 @@ function readURL() {
  * Return the correct method to use imageURL() depending of standalone method
  * If standalone, it will incrustate the image in base64 instead a normal src link
  */
-function getImageLinkMethod(data) {
-    var standalone = (data.form.standaloneMode === 0 && data.form.standalone !== undefined && data.form.standalone || data.standaloneMode === 2);
+App.prototype.getImageLinkMethod = function(data) {
+    var standalone = (data.standaloneMode === 0 && data.form.standalone !== undefined && data.form.standalone || data.standaloneMode === 2);
     return (standalone) ? data.imageURLStandalone : data.imageURLNormal;
 }
 
 // Load on start
 document.addEventListener('DOMContentLoaded', function(){ 
-    init();
+    APP = new App(SETTINGS);
 }, false);

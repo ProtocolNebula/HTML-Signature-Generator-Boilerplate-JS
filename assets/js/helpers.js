@@ -61,7 +61,11 @@ function decodeURI(string) {
  * Return base URL to the file .html
  */
 function getBaseURL() {
-    return window.location.origin + window.location.pathname;
+    var origin = window.location.origin;
+    if (!origin || origin == "null") {
+        origin = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port: '');
+    }
+    return origin + window.location.pathname;
 }
 
 /**

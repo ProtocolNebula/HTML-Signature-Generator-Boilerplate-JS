@@ -1,14 +1,8 @@
-/**
- * This will be used to generate automatically the form, use current fields or example configurable fields to generate new ones
- * 
- * TIP: If you need custom results, edit "middleware.js"
- * FUTURE DESIRED IMPROVEMENT: If you need a custom form, you can edit "assets/js/templates/form.js", all elements that you add will be automatically read from app witouth need to add here.
- * 
- * This is a non-developer skills/fast development helper
- * 
- * EX: `Name: {{form.name}}, {{form.lastName}}`
- */
-var FORM_FIELDS = {
+
+var SETTINGS = {
+
+    form: null, // RESERVED FOR THE APP
+
     /**
      * This setting will manage the method to add images in signature
      *  0: User can choose the method
@@ -18,7 +12,14 @@ var FORM_FIELDS = {
     standaloneMode: 1, // WIP, CURRENTLY ONLY "1" is working
 
     /**
-     * This contain all fields to show/restore
+     * This will be used to generate automatically the form, use current fields or example configurable fields to generate new ones
+     * 
+     * TIP: If you need custom results, edit "middleware.js"
+     * FUTURE DESIRED IMPROVEMENT: If you need a custom form, you can edit "assets/js/templates/form.js", all elements that you add will be automatically read from app witouth need to add here.
+     * 
+     * This is a non-developer skills/fast development helper
+     * 
+     * EX: `Name: {{form.name}}, {{form.lastName}}`
      */
     fields: [
         {
@@ -45,21 +46,21 @@ var FORM_FIELDS = {
             defaultValue: '@mycompany.com',
             type: 'string',
         }
-    ]
-};
+    ],
 
-/**
- * This will be merged with FORM_FIELDS result before process the template.
- * You can use custom mustache.js syntax (arrays, functions...)
- * You are free to add/remove all fields, but remember to change it in "template.js"
- * EX: `Company Name: {{companyInfo.name}}`
- * 
- * IMPORTANT: This will be merged with all form elements into "form" property.
- * You can use "console.log(this)" to see what are you receiving
- * 
- * https://github.com/janl/mustache.js/
- */
-var ADDITIONAL_INFO = {
+    
+    /**
+     * This are additional fields that you can use in the template
+     * You can use custom mustache.js syntax (arrays, functions...)
+     * You are free to add/remove all fields, but remember to change it in "template.js"
+     * EX: `{{#imageURL}}PATH_TO_YOUR_IMAGE_FILE{{/imageURL}}`
+     * EX: `Company Name: {{companyInfo.name}}`
+     * 
+     * IMPORTANT: This will be merged with all form elements into "form" property.
+     * You can use "console.log(this)" to see what are you receiving
+     * 
+     * https://github.com/janl/mustache.js/
+     */
     companyInfo: {
         name: 'CompanyName',
         websiteText: 'racs.es', // Text to show on website URL
@@ -86,7 +87,7 @@ var ADDITIONAL_INFO = {
         return replaceAll(this.form.phone, ' ', '');
     },
 
-    imageURL: function(url) {}, // Will setted automatically depending if standalone or no
+    imageURL: null, // Will setted automatically depending if standalone or no
 
     /**
      * Normal mode image
@@ -103,7 +104,7 @@ var ADDITIONAL_INFO = {
      */
     imageURLStandalone: function(url) {
         return function(url, render) {
-            console.log('normal');
+            console.log('standalone');
             return render(url);
         }
     }
