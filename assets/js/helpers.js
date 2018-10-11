@@ -1,27 +1,4 @@
-function copyText(element) {
-    var range, selection, worked;
-
-    if (document.body.createTextRange) {
-        range = document.body.createTextRange();
-        range.moveToElementText(element);
-        range.select();
-    } else if (window.getSelection) {
-        selection = window.getSelection();
-        range = document.createRange();
-        range.selectNodeContents(element);
-        selection.removeAllRanges();
-        selection.addRange(range);
-    }
-
-    try {
-        document.execCommand('copy');
-        alert('Text copied.');
-    }
-    catch (err) {
-        alert('Your browser is not compatible with text copy.');
-    }
-}
-
+//#region Strings manipulation
 /**
  * Replace all ocurrences of string
  * @param {*} string Original string
@@ -33,13 +10,19 @@ function replaceAll(string, search, replacement) {
     if (string) return string.replace(new RegExp(search, 'g'), replacement);
     return string;
 };
+//#endregion
 
+
+//#region URLs
 /**
- * Clone an object deeply (using json encode/decode)
- * @param {*} object Object to clone
+ * Return base URL to the file .html
  */
-function cloneObject(object) {
-    return JSON.parse(JSON.stringify(object));
+function getBaseURL() {
+    var origin = window.location.origin;
+    if (!origin || origin == "null") {
+        origin = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port: '');
+    }
+    return origin + window.location.pathname;
 }
 
 /**
@@ -56,30 +39,6 @@ function encodeURI(object) {
  */
 function decodeURI(string) {
     return JSON.parse(atob(string));
-}
-
-/**
- * Return base URL to the file .html
- */
-function getBaseURL() {
-    var origin = window.location.origin;
-    if (!origin || origin == "null") {
-        origin = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port: '');
-    }
-    return origin + window.location.pathname;
-}
-
-
-/**
- * Unregister 
- * @param {*} elements 
- * @param {*} event 
- * @param {*} callback 
- */
-function unregisterListeners(elements, event, callback, useCapture) {
-    for(var i=0; i < elements.length; i++){
-        elements[i].removeEventListener(event, callback, useCapture || false);
-    }
 }
 
 /**
@@ -109,14 +68,37 @@ function generateURL(formValues) {
     uri = encodeURI(uri);
     return uri;
 }
+//#endregion
+
+
+//#region Objects manipulation
+/**
+ * Clone an object deeply (using json encode/decode)
+ * @param {*} object Object to clone
+ */
+function cloneObject(object) {
+    return JSON.parse(JSON.stringify(object));
+}
+
+/**
+ * Unregister listeners from element
+ * @param {*} elements 
+ * @param {*} event 
+ * @param {*} callback 
+ */
+function unregisterListeners(elements, event, callback, useCapture) {
+    for(var i=0; i < elements.length; i++){
+        elements[i].removeEventListener(event, callback, useCapture || false);
+    }
+}
 
 /**
  * Read the form and return all elements
  * @param {Object} form Form element DOM (document.getElementById(), ...)
  */
-getFormValues = function(form) {
+function getFormValues(form) {
     var data = {};
-    var fields = document.getElementById(FORM_ID).elements;
+    var fields = form.elements;
     var elements = Object.values(fields);
 
     for (var n = 0; n < elements.length; n++) {
@@ -134,3 +116,32 @@ getFormValues = function(form) {
 
     return data;
 }
+
+/**
+ * Select a text from container and copy to clipboard
+ * @param {Object} element DOM reference of object to copy
+ */
+function copyText(element) {
+    var range, selection, worked;
+
+    if (document.body.createTextRange) {
+        range = document.body.createTextRange();
+        range.moveToElementText(element);
+        range.select();
+    } else if (window.getSelection) {
+        selection = window.getSelection();
+        range = document.createRange();
+        range.selectNodeContents(element);
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }
+
+    try {
+        document.execCommand('copy');
+        alert('Text copied.');
+    }
+    catch (err) {
+        alert('Your browser is not compatible with text copy.');
+    }
+}
+//#endregion
