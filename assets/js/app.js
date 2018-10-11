@@ -23,20 +23,26 @@ function App(settings, signatureTemplate) {
 }
 
 /**
- * This initialize the app
+ * Initialize the app and render the signature for the first time if some GET received
  */
 App.prototype.init = function() {
-    var GET = this.readURL();
-
+    
     // Prepare bind for listeners
     this.generateSignature = this.generateSignature.bind(this);
     this.renderSignature = this.renderSignature.bind(this);
     this.checkFilesReady = this.checkFilesReady.bind(this);
-
+    
     // Initialize components
+    var GET = this.readURL();
+
     this.prepareMustache();
     this.renderForm(GET.formValues);
-    this.generateSignature();
+    if (GET) {
+        this.generateSignature();
+    } else {
+        document.getElementById(SIGNATURE_CONTENT_ID).innerHTML = 'Please, fill the form to get a signature.';
+        this.showURLSignature(null, false); // Show link to avoid empty content
+    }
 }
 
 /**
@@ -193,15 +199,15 @@ App.prototype.getFormValues = function() {
 App.prototype.showURLSignature = function(data, changeURL) {
     if (changeURL === undefined) changeURL = true;
     
-    var url = this.generateURL(data.form);
+    var url = (data) ? '?' + this.generateURL(data.form) : '';
 
     // Set the url in address bar
     if (changeURL) {
-        window.history.pushState("", "", '?' + url);
+        window.history.pushState("", "", url);
     }
 
     // Set the URL in container link
-    url = getBaseURL() + '?' + url;
+    url = getBaseURL() + url;
     document.getElementById(SIGNATURE_URL_ID).innerHTML = '<a href="'+url+'">'+url+'</a>';
 
     return url;
