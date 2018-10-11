@@ -30,7 +30,8 @@ function copyText(element) {
  * @link https://stackoverflow.com/questions/1144783/how-to-replace-all-occurrences-of-a-string-in-javascript
  */
 function replaceAll(string, search, replacement) {
-    return string.replace(new RegExp(search, 'g'), replacement);
+    if (string) return string.replace(new RegExp(search, 'g'), replacement);
+    return string;
 };
 
 /**
@@ -79,4 +80,57 @@ function unregisterListeners(elements, event, callback, useCapture) {
     for(var i=0; i < elements.length; i++){
         elements[i].removeEventListener(event, callback, useCapture || false);
     }
+}
+
+/**
+ * Return an object with all data from "generateURL" passed by $_GET
+ * @returns {*} All data in $_GET. Willcontain:
+ *  - formValues: Values read from Form (to reload a created signature)
+ */
+function readGET() {
+    try {
+        var uri = window.location.search.substr(1);
+        return decodeURI(uri);
+    } catch (e) {
+    }
+    return '';
+}
+
+/**
+ * Generate an URL with form data
+ * @param {*} elements Object containing all elements to add to url
+ * @returns {string} Encoded URI
+ */
+function generateURL(formValues) {
+    // For future improvements
+    var uri = {
+        formValues: formValues,
+    };
+    uri = encodeURI(uri);
+    return uri;
+}
+
+/**
+ * Read the form and return all elements
+ * @param {Object} form Form element DOM (document.getElementById(), ...)
+ */
+getFormValues = function(form) {
+    var data = {};
+    var fields = document.getElementById(FORM_ID).elements;
+    var elements = Object.values(fields);
+
+    for (var n = 0; n < elements.length; n++) {
+        var element = elements[n];
+        
+        switch (element.type) {
+            case "checkbox":
+                data[element.name] = element.checked;
+                break;
+            default:
+                data[element.name] = element.value;
+                break;
+        }
+    }
+
+    return data;
 }
