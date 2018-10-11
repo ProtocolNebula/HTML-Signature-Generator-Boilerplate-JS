@@ -1,12 +1,9 @@
-﻿# Mail Signature Generator Boilerplate
+﻿# HTML Signature Generator Boilerplate
 
-This is a Boilerplate to Generator HTML 5 Mail Signature.
-
-(This can have multiple uses, not only mails signature).
+This is a Boilerplate to Generator HTML 5 Mail Signature, you can use it for your company mails, forums...
 
 [Try the example online now!](https://protocolnebula.github.io/Mail-Signature-Generator-Boilerplate-JS/index.html)
 
-**STAND-ALONE MODE IS WIP**
 
 ## Why I need this?
 
@@ -15,7 +12,8 @@ your time of repetitive tasks.
 
 ## How this help me? / How it works?
 
-This will let to the end user to create him Mail Signature using a `Web Form` (you must configure with your settings).
+This will let to the end user to create him Signature using a simple `Web Form` (easy configuration).
+
 You can create the signature filling form info and send a custom URL with all filled data (user can change it).
 
 ### There's more!
