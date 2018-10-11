@@ -12,8 +12,13 @@ var SIGNATURE_CONTENT_ID = 'signature';
 var SIGNATURE_URL_ID = 'signature-link';
 var APP; // Will contain the app instance
 
-var CACHED_FILES = new RemoteFilesManager(); // All files loaded for standalone will added here as pair: URL=>DATA (files don't should be greater than 5kb except logo)
+var REMOTE_FILES_MANAGER = new RemoteFilesManager(); // All files loaded for standalone will added here as pair: URL=>DATA (files don't should be greater than 5kb except logo)
 
+/**
+ * Constructor for app class
+ * @param {*} settings SETTINGS to use (defined in configurable/Settings.js)
+ * @param {*} signatureTemplate SIGNATURE_TEMPLATE to render (configurable/template.js)
+ */
 function App(settings, signatureTemplate) {
     this.signatureTemplate = signatureTemplate;
     this.data = null; // Temporal variable (reference) used to generate and render signatures
@@ -46,7 +51,8 @@ App.prototype.init = function() {
 }
 
 /**
- * Load all data and render signature
+ * Generate button/onblur action to start generate signature.
+ * This process only load all data and call renderSignature.
  */
 App.prototype.generateSignature = function() {
     // Load all view elements
@@ -60,6 +66,11 @@ App.prototype.generateSignature = function() {
 
     // Hook preGenerateSignature
     this.data = AppMiddleware.preGenerateSignature(this.data);
+
+    // Reset error images to download again?
+    if (this.data.redownloadImagesIfError && this.isStandalone(this.data)) {
+        REMOTE_FILES_MANAGER.resetErrorFiles();
+    }
 
     if (!this.renderSignature()) {
         signatureContent.innerHTML = 'Generating signature. Please wait...';
@@ -84,7 +95,7 @@ App.prototype.renderSignature = function() {
     // Hook postGenerateSignature
     signature = AppMiddleware.postGenerateSignature(signature);
 
-    if (!this.isStandalone(this.data) || CACHED_FILES.allFilesLoaded()) {
+    if (!this.isStandalone(this.data) || REMOTE_FILES_MANAGER.allFilesLoaded()) {
         // All ready, show the signature
         signatureContent.innerHTML = signature;
         this.isLoading = false;
@@ -100,7 +111,7 @@ App.prototype.renderSignature = function() {
  * Basically check if all files are ready (not null) and if true, will call to "renderSignature"
  */
 App.prototype.checkFilesReady = function() {
-    if (this.isLoading && CACHED_FILES.allFilesLoaded() === true) {
+    if (this.isLoading && REMOTE_FILES_MANAGER.allFilesLoaded() === true) {
         this.renderSignature();
     }
 }

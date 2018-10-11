@@ -12,6 +12,11 @@ var SETTINGS = {
     standaloneMode: 0,
 
     /**
+     * If images load fails, try to download again on "re-generate" process
+     */
+    redownloadImagesIfError: false,
+
+    /**
      * This will be used to generate automatically the form, use current fields or example configurable fields to generate new ones
      * 
      * TIP: If you need custom results, edit "middleware.js"
@@ -106,7 +111,7 @@ var SETTINGS = {
      */
     imageURLStandalone: function(url) {
         return function(url, render) {
-            var file = CACHED_FILES.getFile(url, APP.checkFilesReady, 3, APP.checkFilesReady);
+            var file = REMOTE_FILES_MANAGER.getFile(url, APP.checkFilesReady, 2, APP.checkFilesReady);
             if (file) {
                 return render(file);
             }

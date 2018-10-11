@@ -12,11 +12,11 @@ const RemoteFilesManager = function() {
 
 /**
  * Get a remote file via GET using AJAX
- * @link https://stackoverflow.com/questions/6150289/how-to-convert-image-into-base64-string-using-javascript
+ * @link (xhr example) https://stackoverflow.com/questions/6150289/how-to-convert-image-into-base64-string-using-javascript
  * @param {string} url URL to retrieve
- * @param {*} callback Function to process the result IF FILE IS NOT ALREADY LOADED
+ * @param {*} callback (url, data) Function to process the result IF FILE IS NOT ALREADY LOADED
  * @param {number} retry Total retries if fail (timeout or error)
- * @param {*} callbackError Function to process if error (no more retries or retry=0)
+ * @param {*} callbackError (url, error) Function to process if error (no more retries or retry=0)
  * @example 
  *  cacheFile.getFile('https://www.gravatar.com/avatar/d50c83cc0c6523b4d3f6085295c953e0', function(dataUrl) {
  *      console.log('RESULT:', dataUrl);
@@ -35,6 +35,7 @@ RemoteFilesManager.prototype.getFile = function (url, callback, retry, callbackE
 
     try {
         var xhr = new XMLHttpRequest();
+        // LOAD OK
         xhr.onload = function() {
             var reader = new FileReader();
             reader.onloadend = function() {
@@ -45,26 +46,29 @@ RemoteFilesManager.prototype.getFile = function (url, callback, retry, callbackE
             reader.readAsDataURL(xhr.response);
         }.bind(this);
     
-        // Added by Ruben Arroyo: Minimal error control
+        // Error load event
         var onError = function (e) {
+            console.log('RemoteFilesmanager::onError: ' , e);
             if (retry && retry > 0) {
-                toDataURL(url, callback, retry - 1);
+                this.getFile(url, callback, retry - 1, callbackError);
             } else if (callbackError) {
                 this.cachedFiles[url] = false; // ERROR LOADING FILE
-                callbackError(e);
+                callbackError(url, e);
             }
-        };
+        }.bind(this);
     
         xhr.ontimeout = onError;
         xhr.addEventListener('error', onError);
         // xhr.addEventListener('abort', onError);
     
+        // Send request
         xhr.open('GET', url);
         xhr.responseType = 'blob';
         xhr.send();
     } catch (e) {
-        // Added by Ruben Arroyo: Minimal exception control
+        // Minimal exception control
         console.error(e);
+        this.cachedFiles[url] = false;
         if (callbackError) {
             callbackError(e);
         }
@@ -77,7 +81,6 @@ RemoteFilesManager.prototype.getFile = function (url, callback, retry, callbackE
  */
 RemoteFilesManager.prototype.allFilesLoaded = function() {
     var keys = Object.keys(this.cachedFiles);
-
     for (n = 0; n < keys.length; n++) {
         var element = this.cachedFiles[keys[n]];
         if (element == null) return false;
@@ -86,10 +89,14 @@ RemoteFilesManager.prototype.allFilesLoaded = function() {
 }
 
 /**
- * Set all "false" (error) elements to "null"
+ * Set all "false" (error) elements to "null" in order to redownload when getFile called
  */
 RemoteFilesManager.prototype.resetErrorFiles = function() {
-    Object.keys(this.cachedFiles).forEach(function(key) {
-        if (this.cachedFiles[key] == null) this.cachedFiles[key] = null;
-    })
+    var keys = Object.keys(this.cachedFiles);
+    for (n = 0; n < keys.length; n++) {
+        var element = this.cachedFiles[keys[n]];
+        if (element == false) {
+            this.cachedFiles[keys[n]] = null;
+        }
+    }
 }
