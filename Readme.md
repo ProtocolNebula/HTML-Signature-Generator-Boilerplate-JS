@@ -2,7 +2,7 @@
 
 This is a Boilerplate to Generator HTML 5 Mail Signature, you can use it for your company mails, forums...
 
-[Try the example online now!](https://protocolnebula.github.io/Mail-Signature-Generator-Boilerplate-JS/index.html)
+[Try the example online now!](https://protocolnebula.github.io/HTML-Signature-Generator-Boilerplate-JS/index.html)
 
 
 ## Why I need this?
