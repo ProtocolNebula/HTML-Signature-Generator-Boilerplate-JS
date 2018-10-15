@@ -26,14 +26,12 @@ If you **save the link** sended to your end users, they will obtain again the up
 
 1. Download the latest version from `master` (or clone repository).
 2. Add your needed files (like images or documents) in `assets/`.
-3. Duplicate the content `configurable_struct` to `configurable` folder and edit `configurable` folder files.
+3. Duplicate `configurable_struct` to `configurable` folder and edit `configurable` folder files as your requirements.
 4. Upload to any web server (necessary for `non-standalone` mode).
 
 ## What can I do when the script is working?
 
-You can:
-
-- Generate the signature
+- Generate the signature (even without server in standalone mode)
 - Generate a stand-alone signature:
   - IMAGES will be included in the HTML as base64
   - Signature will be greater size, but if signature server down, signature will work
