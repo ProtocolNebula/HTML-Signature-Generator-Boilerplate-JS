@@ -24,12 +24,13 @@ const RemoteFilesManager = function() {
  * @returns {string|false|null} If file is already in cache, it will return the string of file or false if was a loading error
  */
 RemoteFilesManager.prototype.getFile = function (url, callback, retry, callbackError) {
+    // Check if file already loaded
     if (this.cachedFiles[url] !== undefined && this.cachedFiles[url] !== null) {
         return this.cachedFiles[url];
     }
 
-    // Put file status in loading
-    if (this.cachedFiles[url] === undefined) {
+    // Put file status as loading
+    if (this.cachedFiles[url] === undefined || this.cachedFiles[url] === false) {
         this.cachedFiles[url] = null;
     }
 
@@ -37,6 +38,7 @@ RemoteFilesManager.prototype.getFile = function (url, callback, retry, callbackE
         var xhr = new XMLHttpRequest();
         // LOAD OK
         xhr.onload = function() {
+            // Read content file and save to cached files
             var reader = new FileReader();
             reader.onloadend = function() {
                 var result = reader.result || false;
@@ -48,12 +50,11 @@ RemoteFilesManager.prototype.getFile = function (url, callback, retry, callbackE
     
         // Error load event
         var onError = function (e) {
-            console.log('RemoteFilesmanager::onError: ' , e);
             if (retry && retry > 0) {
+                console.warn('(RETRYING) RemoteFilesmanager::onError: ' , e);
                 this.getFile(url, callback, retry - 1, callbackError);
-            } else if (callbackError) {
-                this.cachedFiles[url] = false; // ERROR LOADING FILE
-                callbackError(url, e);
+            } else {
+                this.getFileCatchError(e, url, callbackError);
             }
         }.bind(this);
     
@@ -66,15 +67,17 @@ RemoteFilesManager.prototype.getFile = function (url, callback, retry, callbackE
         xhr.responseType = 'blob';
         xhr.send();
     } catch (e) {
-        // Minimal exception control
-        console.error(e);
-        this.cachedFiles[url] = false;
-        if (callbackError) {
-            callbackError(e);
-        }
+        this.getFileCatchError(e, url, callbackError);
     }
 }
 
+RemoteFilesManager.prototype.getFileCatchError = function(error, url, callbackError) {
+    console.error('RemoteFilesManager error: ' , error);
+    this.cachedFiles[url] = false;
+    if (callbackError) {
+        callbackError(url, error);
+    }
+}
 
 /**
  * Check if all files are ready (!== null)
