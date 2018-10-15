@@ -85,6 +85,29 @@ App.prototype.prepareMustache = function() {
 
 //#endregion
 
+//#region "Settings Helpers"
+/**
+ * Default behavior to show an URL file on the generated signature
+ * @param {*} url File URI to show
+ * @param {*} render Renderer from moustache.js
+ */
+App.prototype.urlAsLink = function(url, render) {
+    return render(url);
+}
+
+/**
+ * Show an incrustated file using an URL using RemoteFilesManager
+ * @param {*} url File URI to incrustate
+ * @param {*} render Renderer from moustache.js
+ */
+App.prototype.urlStandalone = function(url, render) {
+    var file = REMOTE_FILES_MANAGER.getFile(url, APP.checkFilesReady, 2, APP.checkFilesReady);
+    if (file) {
+        return render(file);
+    }
+}
+//#endregion
+
 //#region signature generation and rendering
 /**
  * Generate button/onblur action to start generate signature.
@@ -213,7 +236,23 @@ App.prototype.restoreForm = function(values) {
  * If standalone, it will incrustate the image in base64 instead a normal src link
  */
 App.prototype.getImageLinkMethod = function(data) {
-    return (this.isStandalone(data)) ? data.imageURLStandalone : data.imageURLNormal;
+    // Load behaviour depending Settings.js
+    var method = (this.isStandalone(data)) ? data.imageURLStandalone : data.imageURLNormal;
+    if (!method) method = this.getMethodLinkDefault(data);
+
+    return method;
+}
+
+/**
+ * Get a default behavior to show URLs (as link or incrustanted/standalone)
+ * @param {*} data 
+ */
+App.prototype.getMethodLinkDefault = function(data) {
+    // Not specified methods in Settings
+    var methodToUse = (this.isStandalone(data)) ? APP.urlStandalone : APP.urlAsLink;
+    return function() {
+        return methodToUse;
+    };
 }
 
 /**
