@@ -38,12 +38,13 @@ App.prototype.init = function() {
     this.checkFilesReady = this.checkFilesReady.bind(this);
     
     // Initialize components
-    var GET = readGET();
+    var GET = this.readGET();
+    var isEmpty = Object.keys(GET.formValues).length === 0;
 
     this.prepareMustache();
     this.restoreForm(GET.formValues); // Restore or create necessary object for form
     this.renderForm();
-    if (GET) {
+    if (!isEmpty) {
         this.generateSignature();
     } else {
         this.setSignature('Please, fill the form to get a signature.');
@@ -172,7 +173,14 @@ App.prototype.checkFilesReady = function() {
 //#endregion
 
 //#region Helpers
-
+/**
+ * Helper to read GET with default objects if null
+ */
+App.prototype.readGET = function() {
+    var GET = readGET();
+    if (!GET) GET = { formValues: {} };
+    return GET;
+}
 /**
  * Render and show edition form
  */
