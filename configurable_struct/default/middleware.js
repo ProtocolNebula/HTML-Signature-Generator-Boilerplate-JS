@@ -2,8 +2,8 @@
  Here are the functions hooks to manipulate data response 
  and other things to avoid edit base app
  */
-
-const AppMiddleware = {
+define(function () {
+return {
     /**
      * This function is called before process template.js signature
      * @param {*} args Args that will be send to "template.js" and will be processed by mustache
@@ -31,4 +31,4 @@ const AppMiddleware = {
         
         return template;
     }
-};
+});

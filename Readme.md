@@ -5,10 +5,21 @@ This is a Boilerplate to Generator HTML 5 Mail Signature, you can use it for you
 [Try the example online now!](https://protocolnebula.github.io/HTML-Signature-Generator-Boilerplate-JS/index.html)
 
 
-## Why I need this?
+## What necessities does it cover?
 
 Ìf you have to make some (or many) signature to your Company workers, clients, etc... you can save
 your time of repetitive tasks.
+
+## How to configure?
+
+1. Download the latest version from `master` (or clone repository).
+2. Add your needed files (like images or documents) in `assets/`.
+3. Duplicate `configurable_struct` to `configurable` folder and edit `configurable` folder files as your requirements.
+4. Upload to any web server (necessary for `non-standalone` mode).
+
+### Why duplicate configurable_struct?
+
+This "feature" is to avoid lost `configurable` data on app update.
 
 ## How this help me? / How it works?
 
@@ -21,13 +32,6 @@ You can create the signature filling form info and send a custom URL with all fi
 Imagine you change the custom signature and all users must change, in normal case you must generate it manually.
 
 If you **save the link** sended to your end users, they will obtain again the updated signature!
-
-## How can I configure?
-
-1. Download the latest version from `master` (or clone repository).
-2. Add your needed files (like images or documents) in `assets/`.
-3. Duplicate `configurable_struct` to `configurable` folder and edit `configurable` folder files as your requirements.
-4. Upload to any web server (necessary for `non-standalone` mode).
 
 ## What can I do when the script is working?
 
@@ -62,6 +66,7 @@ Note that, even `Bootstrap` includes `jQuery`, is not used in app components (it
 ## JavaScript
 
 - [mustache.js](https://github.com/janl/mustache.js)
+- [require.js](https://requirejs.org/)
 - [BootStrap](https://getbootstrap.com)
 
 ## Icons

@@ -1,5 +1,5 @@
-var TEMPLATE_FORM = `
-
+define(function () {
+return `
     {{#fields}}
         <div class="form-group row">
             <label for="input_{{name}}" class="col-sm-3 col-form-label">{{displayText}}</label>
@@ -23,3 +23,4 @@ var TEMPLATE_FORM = `
         </div>
     {{/standaloneMode}} 
 `;
+});

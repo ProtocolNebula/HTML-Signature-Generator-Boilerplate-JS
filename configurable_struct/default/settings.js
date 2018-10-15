@@ -1,5 +1,5 @@
-
-var SETTINGS = {
+define(function () {
+return {
 
     form: null, // RESERVED FOR THE APP
 
@@ -116,3 +116,4 @@ var SETTINGS = {
     // }
     
 };
+});

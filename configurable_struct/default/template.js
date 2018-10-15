@@ -10,7 +10,8 @@
 
  https://github.com/janl/mustache.js/
  */
-var SIGNATURE_TEMPLATE = `
+define(function () {
+return `
 	<table>
 		<tr>
 			<td vertical-align="middle" style="padding-right: 15px;">
@@ -120,3 +121,4 @@ var SIGNATURE_TEMPLATE = `
 		</p>
 	</div>
 `;
+});
