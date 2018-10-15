@@ -272,9 +272,10 @@ App.prototype.setSignature = function(content) {
 }
 //#endregion
 
-APP = new App(SETTINGS, SIGNATURE_TEMPLATE);
 
-// Init app once document ready
-document.addEventListener('DOMContentLoaded', function(){ 
-    APP.init();
-}, false);
+// Export for requireJS
+if (define !== undefined) {
+    define(function() {
+        return App;
+    });
+}
