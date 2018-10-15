@@ -18,9 +18,24 @@ requirejs([
     initApp();
 }, function (err) {
     console.error('FILE NOT FOUND or ERROR ON PROCESS:' , err);
+
+    // Load the default settings (configurable struct)
     if (!errorShown) {
-        alert('Can\'t load app due a file loading error. Please, check the console log.');
         errorShown = true;
+        // RequireJS configurable struct
+        requirejs([
+            // Settings files
+            './configurable_struct/form.js',
+            './configurable_struct/middleware.js',
+            './configurable_struct/settings.js',
+            './configurable_struct/template.js',
+        ], function (...loadedElements) {
+            alert("SETTINGS loaded from 'configurable_struct'. Please, check 'configuration' folder if you are not in DEMO mode.")
+            initApp();
+        }, function (err) {
+            console.error('FILE NOT FOUND or ERROR ON PROCESS:' , err);
+            alert('Can\'t load app due a file SETTINGS loading error. Please, check the console log.');
+        });
     }
 });
 
