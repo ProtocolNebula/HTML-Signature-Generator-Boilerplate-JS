@@ -95,27 +95,24 @@ var SETTINGS = {
 
     imageURL: null, // Will setted automatically depending if standalone or no
 
+    // Image handler, will be added to "imageURL" dinamically in function of "standalone" settings.
+    // If methods not defined, default behaviour will used (check app.js:)
+
     /**
-     * Normal mode image
+     * Normal mode image (standaloneMode: 1)
      */
-    imageURLNormal: function() {
-        return function(url, render) {
-            return render(url);
-        }
-    },
+    // imageURLNormal: function() {
+    //     console.log('Overwrited imageURLNormal');
+    //     return APP.urlAsLink;
+    // },
     
-    /**
-     * Standalone mode
-     * This will try to load the image from "RemoteFilesManager" (CACHED_FILES), if not loaded yet,
-     * will download and after that will call to App.checkFilesReady to refresh signature
-     */
-    imageURLStandalone: function(url) {
-        return function(url, render) {
-            var file = REMOTE_FILES_MANAGER.getFile(url, APP.checkFilesReady, 2, APP.checkFilesReady);
-            if (file) {
-                return render(file);
-            }
-        }
-    }
+    // /**
+    //  * Standlaone mode - incrustate images (standaloneMode: 2)
+    //  * Incrustate file in <img> instead using URI to resource
+    //  */
+    // imageURLStandalone: function() {
+    //     console.log('Overwrited imageURLStandalone');
+    //     return APP.urlStandalone;
+    // }
     
 };

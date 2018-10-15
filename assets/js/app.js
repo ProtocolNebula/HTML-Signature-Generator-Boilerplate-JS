@@ -38,12 +38,13 @@ App.prototype.init = function() {
     this.checkFilesReady = this.checkFilesReady.bind(this);
     
     // Initialize components
-    var GET = readGET();
+    var GET = this.readGET();
+    var isEmpty = Object.keys(GET.formValues).length === 0;
 
     this.prepareMustache();
     this.restoreForm(GET.formValues); // Restore or create necessary object for form
     this.renderForm();
-    if (GET) {
+    if (!isEmpty) {
         this.generateSignature();
     } else {
         this.setSignature('Please, fill the form to get a signature.');
@@ -82,6 +83,29 @@ App.prototype.prepareMustache = function() {
     Mustache.parse(this.signatureTemplate);
 }
 
+//#endregion
+
+//#region "Settings Helpers"
+/**
+ * Default behavior to show an URL file on the generated signature
+ * @param {*} url File URI to show
+ * @param {*} render Renderer from moustache.js
+ */
+App.prototype.urlAsLink = function(url, render) {
+    return render(url);
+}
+
+/**
+ * Show an incrustated file using an URL using RemoteFilesManager
+ * @param {*} url File URI to incrustate
+ * @param {*} render Renderer from moustache.js
+ */
+App.prototype.urlStandalone = function(url, render) {
+    var file = REMOTE_FILES_MANAGER.getFile(url, APP.checkFilesReady, 2, APP.checkFilesReady);
+    if (file) {
+        return render(file);
+    }
+}
 //#endregion
 
 //#region signature generation and rendering
@@ -172,7 +196,14 @@ App.prototype.checkFilesReady = function() {
 //#endregion
 
 //#region Helpers
-
+/**
+ * Helper to read GET with default objects if null
+ */
+App.prototype.readGET = function() {
+    var GET = readGET();
+    if (!GET) GET = { formValues: {} };
+    return GET;
+}
 /**
  * Render and show edition form
  */
@@ -205,7 +236,23 @@ App.prototype.restoreForm = function(values) {
  * If standalone, it will incrustate the image in base64 instead a normal src link
  */
 App.prototype.getImageLinkMethod = function(data) {
-    return (this.isStandalone(data)) ? data.imageURLStandalone : data.imageURLNormal;
+    // Load behaviour depending Settings.js
+    var method = (this.isStandalone(data)) ? data.imageURLStandalone : data.imageURLNormal;
+    if (!method) method = this.getMethodLinkDefault(data);
+
+    return method;
+}
+
+/**
+ * Get a default behavior to show URLs (as link or incrustanted/standalone)
+ * @param {*} data 
+ */
+App.prototype.getMethodLinkDefault = function(data) {
+    // Not specified methods in Settings
+    var methodToUse = (this.isStandalone(data)) ? APP.urlStandalone : APP.urlAsLink;
+    return function() {
+        return methodToUse;
+    };
 }
 
 /**

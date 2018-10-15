@@ -43,8 +43,9 @@ function decodeURI(string) {
 
 /**
  * Return an object with all data from "generateURL" passed by $_GET
- * @returns {*} All data in $_GET. Willcontain:
+ * @returns {Object|null} All data in $_GET. Willcontain:
  *  - formValues: Values read from Form (to reload a created signature)
+ * If no data, null will returned
  */
 function readGET() {
     try {
@@ -52,7 +53,7 @@ function readGET() {
         return decodeURI(uri);
     } catch (e) {
     }
-    return '';
+    return null;
 }
 
 /**
