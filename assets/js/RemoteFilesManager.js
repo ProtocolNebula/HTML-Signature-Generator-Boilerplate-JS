@@ -106,7 +106,7 @@ RemoteFilesManager.prototype.resetErrorFiles = function() {
 
 
 // Export for requireJS
-if (define !== undefined) {
+if (typeof define !== "undefined") {
     define(function() {
         return RemoteFilesManager;
     });

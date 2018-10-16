@@ -13,12 +13,13 @@ requirejs([
     './assets/js/vendor/mustache.min.js',
     
     // Main files
+    './assets/js/configurable/Settings.js',
     './assets/js/RemoteFilesManager.js', 
     './assets/js/helpers.js',
     './assets/js/app.js',
     
     // Main loader (settings and app init)
-    './assets/js/loader.js',
+    './assets/js/loaderSettings.js',
 ], function (...loadedElements) {
     // Set global elements if not auto-loading with requirejs
     window.Mustache = loadedElements[0];

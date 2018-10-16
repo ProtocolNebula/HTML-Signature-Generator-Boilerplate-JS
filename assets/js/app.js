@@ -274,7 +274,7 @@ App.prototype.setSignature = function(content) {
 
 
 // Export for requireJS
-if (define !== undefined) {
+if (typeof define !== "undefined") {
     define(function() {
         return App;
     });
