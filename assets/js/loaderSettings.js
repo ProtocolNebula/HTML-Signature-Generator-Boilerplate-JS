@@ -61,21 +61,23 @@ LoaderSettings.prototype.requireAll = function(template, callbackEnd, loadFromDe
     requirejs(files, 
     function (...loadedContent) {
         // Set content loaded into loaded files (if no data received, will set "false" to avoid null)
-        for (n = 0; n < files.length; n++) {
+        for (var n = 0; n < files.length; n++) {
             var currentFile = files[n];
             this.loadedFiles[currentFile] = loadedContent[currentFile] || false;
         }
 
-        console.log(callbackEnd);
-        if (callbackEnd) callbackEnd();
+        if (callbackEnd) {
+            callbackEnd();
+        } 
     },
     function(data) {
         // Error
         if (loadFromDefault) {
 
         }
-        if (this.allFilesLoaded(files)) {
-            // if (callbackEnd) callbackEnd();
+
+        if (callbackEnd && this.allFilesLoaded(files)) {
+            callbackEnd();
         }
     });
 }
@@ -93,21 +95,16 @@ LoaderSettings.prototype.init = function() {
 }
 
 LoaderSettings.prototype.loadTemplates = function() {
-    var signaturesToLoad = cloneObject(SETTINGS.signatures);
-    console.log('loading templates', signaturesToLoad);
-    
-    var callback = this.initApp.bind(this);
-    for (n = 0; n < signaturesToLoad.length; n++) {
-        var signature = signaturesToLoad[n];
-        console.log('loading for signature: ' , signature);
-
+    var signaturesToLoad = cloneObject(SETTINGS.signatures);    
+    var callback = this.initApp;
+    for (var fileIndex = 0; fileIndex < signaturesToLoad.length; fileIndex++) {
+        var signature = signaturesToLoad[fileIndex];
         // Skip the main template
         if (signature === this.default_signature) continue;
         
         // INIT APP only if is main signature
         this.requireAll(signature, callback, true);
         if (callback) callback = null;
-        console.log('launched call for signature: ' , signature);
     }
 }
 
@@ -148,4 +145,3 @@ LoaderSettings.prototype.initApp = function() {
 
 // Load default settings (even no settings loaded yet)
 new LoaderSettings().init();
-
