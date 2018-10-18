@@ -2,7 +2,7 @@
 
 This is a Boilerplate to Generator HTML 5 Mail Signature, you can use it for your company mails, forums...
 
-[Try the example online now!](https://protocolnebula.github.io/HTML-Signature-Generator-Boilerplate-JS/index.html)
+[Try the latest working version online now!](https://protocolnebula.github.io/HTML-Signature-Generator-Boilerplate-JS/index.html)
 
 
 ## What necessities does it cover?
@@ -46,15 +46,18 @@ and currently `standalone` **not** support documents on html.
 
 ## Why vanilla javascript?
 
-Well, this is a simple script for fun. Angular or similar will be too bigger and "hard" for this simple script, and create a small "vanilla" app with only required dependences can be funny (but a bit harder to develop).
+> Hey! This is not vanilla javascript! You use too much libraries!
+> - Any developer
 
-**The problem:** Currently most older browsers are not supported for pollifyll reasons (jQuery fix almost all).
+Well, this is a simple script that I started to wrote as `almost vanilla` [(check V1.0)](https://github.com/ProtocolNebula/HTML-Signature-Generator-Boilerplate-JS/tree/v1.0) almost for fun. Angular or similar will be too bigger and "hard" for this  simple script (well... it supposed to be simple in V1).
 
-### Why mustache?
+Create a small "vanilla" app with some external libraries can be funny.
 
-This script must be easy to custom, and I have no enough time to create a full template parser.
+**Problem:** Currently most older browsers are not supported for pollifyll reasons (jQuery fix almost all).
 
-### Why Bootstrap? (which includes jQuery)
+**Problem 2:** This app has more features than the original design, so if V2 is launched, it will have some node.js requirements (like optional minify JS and other possible future requirements).
+
+### Why you use Bootstrap? (which includes jQuery)
 
 Well, is design related problems, I prefer to use an already beautifull CSS to increase speed development.
 
@@ -65,9 +68,9 @@ Note that, even `Bootstrap` includes `jQuery`, is not used in app components (it
 
 ## JavaScript
 
-- [mustache.js](https://github.com/janl/mustache.js)
-- [require.js](https://requirejs.org/)
-- [BootStrap](https://getbootstrap.com)
+- [mustache.js](https://github.com/janl/mustache.js) - HTML Template Processor
+- [require.js](https://requirejs.org/) - Dinamically load JS
+- [BootStrap](https://getbootstrap.com) - To provide a non-so-uggly interface
 
 ## Icons
 
