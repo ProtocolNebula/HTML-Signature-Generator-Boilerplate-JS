@@ -1,3 +1,6 @@
+/**
+ * This file will load all settings or default if not settings available
+ */
 var LoaderSettings = function() {
     this.configurable_folder = 'configurable';
     this.signatures_folder = 'configurable/signatures/';
@@ -11,6 +14,7 @@ var LoaderSettings = function() {
         'middleware.js',
         'settings.js',
         'template.js',
+        'template2.js',
     ];
 
     // This will contain processde content of loaded files.
@@ -31,18 +35,12 @@ var LoaderSettings = function() {
 }
 
 /**
- * This file will load all settings or default if not settings available
- */
-
-
-/**
  * Check if all files provided via "files" are in "loadedFiles" (key exist and is not null)
  */
 LoaderSettings.prototype.allFilesLoaded = function(files) {
-    return true;
     var filesLoaded = this.loadedFiles;
     for (n = 0; n < files.length; n++) {
-        if (filesLoaded === undefined || filesLoaded === null) {
+        if (filesLoaded[n] === undefined || filesLoaded[n] === null) {
             return false;
         }
     }
@@ -58,6 +56,7 @@ LoaderSettings.prototype.allFilesLoaded = function(files) {
  */
 LoaderSettings.prototype.requireAll = function(template, callbackEnd, loadFromDefault) {
     var files = this.getAllFilesFor(template, files);
+    console.log(files);
     requirejs(files, 
     function (...loadedContent) {
         // Set content loaded into loaded files (if no data received, will set "false" to avoid null)
@@ -71,11 +70,13 @@ LoaderSettings.prototype.requireAll = function(template, callbackEnd, loadFromDe
         } 
     },
     function(data) {
+        console.log('File not loaded: ' , data);
         // Error
         if (loadFromDefault) {
-
+            this.loadedFiles[currentFile]
         }
 
+        console.log('Template: ' , template, ' full loaded? ' , this.allFilesLoaded(files) );
         if (callbackEnd && this.allFilesLoaded(files)) {
             callbackEnd();
         }
@@ -87,7 +88,6 @@ LoaderSettings.prototype.requireAll = function(template, callbackEnd, loadFromDe
  * After all process end (or the main template is fully loaded), it will init the app
  */
 LoaderSettings.prototype.init = function() {
-    console.log('initing app settings');
     this.requireAll(
         this.default_signature, 
         this.loadTemplates.bind(this)
@@ -97,14 +97,27 @@ LoaderSettings.prototype.init = function() {
 LoaderSettings.prototype.loadTemplates = function() {
     var signaturesToLoad = cloneObject(SETTINGS.signatures);    
     var callback = this.initApp;
-    for (var fileIndex = 0; fileIndex < signaturesToLoad.length; fileIndex++) {
+    var totalSignatures = signaturesToLoad.length;
+
+    if (totalSignatures === 0) {
+        // Force default signature if no signatures
+        signaturesToLoad = [ this.default_signature ];
+    }
+
+    if (totalSignatures < 2 && signaturesToLoad[0] === this.default_signature) {
+        callback();
+        return;
+    }
+
+    for (var fileIndex = 0; fileIndex < totalSignatures; fileIndex++) {
         var signature = signaturesToLoad[fileIndex];
+
         // Skip the main template
-        if (signature === this.default_signature) continue;
+        if (signature !== this.default_signature) {
+            this.requireAll(signature, callback, true);
+            if (callback) callback = null; // Callback is only applicable to the main signature
+        }
         
-        // INIT APP only if is main signature
-        this.requireAll(signature, callback, true);
-        if (callback) callback = null;
     }
 }
 
@@ -118,7 +131,8 @@ LoaderSettings.prototype.getAllFilesFor = function(templateName) {
     var signatureFiles = this.signature_files;
     
     var files = [];
-    for (n = 0; n < signatureFiles; n++) {
+    for (n = 0; n < signatureFiles.length; n++) {
+        var file = signatureFiles[n];
         files.push(templateFolder + file);
     }
 
@@ -136,8 +150,9 @@ LoaderSettings.prototype.initApp = function() {
     // Check if the main template is fully loaded
     
     // Instantiate the app
-    APP = new App(SETTINGS, SIGNATURE_TEMPLATE);
+    APP = new App(SETTINGS);
     APP.init();
+    APP.addSignature()
 
     console.log('inited app');
 }
