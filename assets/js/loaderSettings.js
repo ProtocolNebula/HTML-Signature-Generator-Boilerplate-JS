@@ -19,6 +19,7 @@ var LoaderSettings = function() {
 
     // This will contain processde content of loaded files.
     // Files must be requirejs compatible (see any from default as example)
+    // Structure: [template]['/relative/path/to/file.js'] = {Object}
     this.loadedFiles = {};
 
     try {
@@ -52,35 +53,37 @@ LoaderSettings.prototype.allFilesLoaded = function(files) {
  * Require all JS files from specified signature and launch "callback".
  * @param {string} template Name of Signature to load
  * @param {*} callbackEnd Callback calle once all files are processed
- * @param {boolean} loadFromDefault If true and file not found, this will use "default" template file (only for errored files)
  */
-LoaderSettings.prototype.requireAll = function(template, callbackEnd, loadFromDefault) {
+LoaderSettings.prototype.requireAll = function(template, callbackEnd) {
     var files = this.getAllFilesFor(template, files);
+    var self = this;
     console.log(files);
-    requirejs(files, 
-    function (...loadedContent) {
-        // Set content loaded into loaded files (if no data received, will set "false" to avoid null)
-        for (var n = 0; n < files.length; n++) {
-            var currentFile = files[n];
-            this.loadedFiles[currentFile] = loadedContent[currentFile] || false;
-        }
 
-        if (callbackEnd) {
-            callbackEnd();
-        } 
-    },
-    function(data) {
-        console.log('File not loaded: ' , data);
-        // Error
-        if (loadFromDefault) {
-            this.loadedFiles[currentFile]
-        }
+    this.loadedFiles[template] = {};
 
-        console.log('Template: ' , template, ' full loaded? ' , this.allFilesLoaded(files) );
-        if (callbackEnd && this.allFilesLoaded(files)) {
-            callbackEnd();
-        }
-    });
+    for (var fileIndex = 0; fileIndex < files.length; fileIndex++) {
+        var file = files[fileIndex];
+        
+        requirejs(
+            [file], 
+            function (contentFile) {
+                self.loadedFiles[template][file] = contentFile;
+                
+                if (callbackEnd && self.allFilesLoaded(files)) {
+                    callbackEnd();
+                } 
+            },
+            function(data) {
+                console.error('error loading ' , file);
+                self.loadedFiles[template][file] = false;
+                // Error on some load file, check callback end anyways
+                // console.log('Template: ' , template, ' full loaded? ' , this.allFilesLoaded(files) );
+                if (callbackEnd && self.allFilesLoaded(files)) {
+                    callbackEnd();
+                }
+            }
+        );
+    }
 }
 
 /**
