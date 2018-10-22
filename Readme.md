@@ -51,7 +51,7 @@ and currently `standalone` **not** support documents on html.
 
 Well, this is a simple script that I started to wrote as `almost vanilla` [(check V1.0)](https://github.com/ProtocolNebula/HTML-Signature-Generator-Boilerplate-JS/tree/v1.0) almost for fun. Angular or similar will be too bigger and "hard" for this  simple script (well... it supposed to be simple in V1).
 
-Create a small "vanilla" app with some external libraries can be funny.
+Create a small "vanilla" app with some external libraries can be funny, and I have curiosity about how work some libraries, so this project will morph in function of tests.
 
 **Problem:** Currently most older browsers are not supported for pollifyll reasons (jQuery fix almost all).
 

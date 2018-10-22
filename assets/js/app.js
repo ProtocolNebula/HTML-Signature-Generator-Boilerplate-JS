@@ -20,12 +20,38 @@ var REMOTE_FILES_MANAGER = new RemoteFilesManager(); // All files loaded for sta
  * @param {*} signatureTemplate SIGNATURE_TEMPLATE to render (configurable/template.js)
  */
 function App(settings, signatureTemplate) {
-    this.signatureTemplate = signatureTemplate;
     this.data = settings;
     this.isLoading = false; // Will be true when will wait some async file or is in execution process
+    this.inited = false; // Check if object is inited
+    
+    this.signatureTemplate = signatureTemplate;
+    this.signatureSettings = {};
+    this.currentSignature = null;
 }
 
 //#region Init functions
+
+/**
+ * Add signature settings to let change
+ * @param {string} signature Name of the template
+ * @param {Object} settings Object loaded form "loaderSettings.js" which contain key as files and their loaded content
+ */
+App.prototype.addSignatureSettings(signature, settings) {
+    this.signatureSettings[signature] = settings;
+    if (this.currentSignature) {
+        this.setSignature(signature);
+    }
+}
+
+/**
+ * Change the current signature and launch generate process
+ */
+App.prototype.setSignatureSettings(signature) {
+    this.currentSignature = signature;
+    if (this.inited) {
+        this.generateSignature();
+    }
+}
 
 /**
  * Initialize the app and render the signature for the first time if some GET received
@@ -36,6 +62,9 @@ App.prototype.init = function() {
     this.generateSignature = this.generateSignature.bind(this);
     this.renderSignature = this.renderSignature.bind(this);
     this.checkFilesReady = this.checkFilesReady.bind(this);
+
+    // Set object as init
+    this.inited = true;
     
     // Initialize components
     var GET = this.readGET();
@@ -50,6 +79,9 @@ App.prototype.init = function() {
         this.setSignature('Please, fill the form to get a signature.');
         this.showURLSignature(null, false); // Show link to avoid empty content
     }
+}
+
+App.prototype.refresh = function() {
 }
 
 /**
