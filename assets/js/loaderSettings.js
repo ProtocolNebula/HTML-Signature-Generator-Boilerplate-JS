@@ -19,7 +19,7 @@ var LoaderSettings = function() {
 
     // This will contain processde content of loaded files.
     // Files must be requirejs compatible (see any from default as example)
-    // Structure: [template]['/relative/path/to/file.js'] = {Object}
+    // Structure: [template]['file.js'] = {Object}
     this.loadedFiles = {};
 
     try {
@@ -38,10 +38,11 @@ var LoaderSettings = function() {
 /**
  * Check if all files provided via "files" are in "loadedFiles" (key exist and is not null)
  */
-LoaderSettings.prototype.allFilesLoaded = function(files) {
-    var filesLoaded = this.loadedFiles;
+LoaderSettings.prototype.allFilesLoaded = function(template, files) {
+    var filesLoaded = this.loadedFiles[template];
     for (n = 0; n < files.length; n++) {
-        if (filesLoaded[n] === undefined || filesLoaded[n] === null) {
+        var file = files[n];
+        if (filesLoaded[file] === undefined || filesLoaded[file] === null) {
             return false;
         }
     }
@@ -52,34 +53,32 @@ LoaderSettings.prototype.allFilesLoaded = function(files) {
 /**
  * Require all JS files from specified signature and launch "callback".
  * @param {string} template Name of Signature to load
- * @param {*} callbackEnd Callback calle once all files are processed
+ * @param {*} callbackEnd Callback (called on success and fail for EACH file)
  */
 LoaderSettings.prototype.requireAll = function(template, callbackEnd) {
-    var files = this.getAllFilesFor(template, files);
+    var files = this.getAllFilesFor(template);
     var self = this;
-    console.log(files);
 
     this.loadedFiles[template] = {};
 
     for (var fileIndex = 0; fileIndex < files.length; fileIndex++) {
-        var file = files[fileIndex];
+        let filePath = files[fileIndex];
+        let file = this.signature_files[fileIndex];
         
         requirejs(
-            [file], 
+            [filePath], 
             function (contentFile) {
                 self.loadedFiles[template][file] = contentFile;
                 
-                if (callbackEnd && self.allFilesLoaded(files)) {
-                    callbackEnd();
+                if (callbackEnd) {
+                    callbackEnd(template);
                 } 
             },
             function(data) {
-                console.error('error loading ' , file);
                 self.loadedFiles[template][file] = false;
                 // Error on some load file, check callback end anyways
-                // console.log('Template: ' , template, ' full loaded? ' , this.allFilesLoaded(files) );
-                if (callbackEnd && self.allFilesLoaded(files)) {
-                    callbackEnd();
+                if (callbackEnd) {
+                    callbackEnd(template);
                 }
             }
         );
@@ -91,6 +90,7 @@ LoaderSettings.prototype.requireAll = function(template, callbackEnd) {
  * After all process end (or the main template is fully loaded), it will init the app
  */
 LoaderSettings.prototype.init = function() {
+    this.initApp();
     this.requireAll(
         this.default_signature, 
         this.loadTemplates.bind(this)
@@ -99,7 +99,7 @@ LoaderSettings.prototype.init = function() {
 
 LoaderSettings.prototype.loadTemplates = function() {
     var signaturesToLoad = cloneObject(SETTINGS.signatures);    
-    var callback = this.initApp;
+    var callback = this.addSignatureLoaded;
     var totalSignatures = signaturesToLoad.length;
 
     if (totalSignatures === 0) {
@@ -120,7 +120,6 @@ LoaderSettings.prototype.loadTemplates = function() {
             this.requireAll(signature, callback, true);
             if (callback) callback = null; // Callback is only applicable to the main signature
         }
-        
     }
 }
 
@@ -146,18 +145,21 @@ LoaderSettings.prototype.getAllFilesFor = function(templateName) {
  * Init the app once successfully load
  */
 LoaderSettings.prototype.initApp = function() {
-    console.log('init app called');
     if (APP) return;
-    
-    console.log('initing app');
-    // Check if the main template is fully loaded
-    
+
     // Instantiate the app
     APP = new App(SETTINGS);
     APP.init();
-    APP.addSignature()
+}
 
-    console.log('inited app');
+/**
+ * Add a signature to App if is fully loaded.
+ * @param {string} template Template name
+ */
+LoaderSettings.prototype.addSignatureLoaded = function(template) {
+    if (self.allFilesLoaded(template, this.signature_files)) {
+        APP.addSignatureSettings(template, this.loadedFiles[template]);
+    }
 }
 
 
