@@ -4,7 +4,7 @@
 var LoaderSettings = function() {
     this.configurable_folder = 'configurable';
     this.signatures_folder = 'configurable/signatures/';
-    this.default_signature = 'default';
+    this.default_signature = 'default'; // If you change this, change it in "app.js" too
 
     /**
      * Main files for signatures (if not exist, will readed from "default")

@@ -11,6 +11,7 @@ var FORM_INPUTS = '#'+FORM_ID+' input';
 var SIGNATURE_CONTENT_ID = 'signature';
 var SIGNATURE_URL_ID = 'signature-link';
 var APP; // Will contain the app instance
+var DEFAULT_SIGNATURE = 'default'; // Change in loaderSettings.js too
 
 var REMOTE_FILES_MANAGER = new RemoteFilesManager(); // All files loaded for standalone will added here as pair: URL=>DATA (files don't should be greater than 5kb except logo)
 
@@ -36,8 +37,9 @@ function App(settings, signatureTemplate) {
  * @param {string} signature Name of the template
  * @param {Object} settings Object loaded form "loaderSettings.js" which contain key as files and their loaded content
  */
-App.prototype.addSignatureSettings(signature, settings) {
+App.prototype.addSignatureSettings = function(signature, settings) {
     this.signatureSettings[signature] = settings;
+    this.prepareMustache();
     if (this.currentSignature) {
         this.setSignature(signature);
     }
@@ -46,11 +48,46 @@ App.prototype.addSignatureSettings(signature, settings) {
 /**
  * Change the current signature and launch generate process
  */
-App.prototype.setSignatureSettings(signature) {
+App.prototype.setSignatureSettings = function(signature) {
     this.currentSignature = signature;
     if (this.inited) {
         this.generateSignature();
     }
+}
+
+/**
+ * Get settings of an specific signature.
+ * If setting no exist, will load from default
+ * @param {string} setting Setting file to obtain (this.signatureSettings[signature])
+ *  EX: settings.js
+ * @param {string} signature OPTIONAL: Signature to get
+ */
+App.prototype.getSignatureSetting = function(setting, signature) {
+    if (!signature) {
+        signature = this.currentSignature;
+    }
+
+    // No signature specified/loaded
+    if (!signature) {
+        console.error('Get signature settings: no signature specified');
+        return;
+    }
+
+    // Check if signature exist
+    if (this.signatureSettings[signature] === undefined 
+        || this.signatureSettings[signature][setting] === undefined
+    ) {
+        // If is not default signature, try to load from default
+        if (this.signatureSettings[signature] !== DEFAULT_SIGNATURE) {
+            return this.getSignatureSetting(setting, DEFAULT_SIGNATURE);
+        } else {
+            console.error("Setting " + setting + " not found");
+            return;
+        }
+    }
+    
+    // Return signature data
+    return this.signatureSettings[signature][setting];
 }
 
 /**
@@ -70,7 +107,6 @@ App.prototype.init = function() {
     var GET = this.readGET();
     var isEmpty = Object.keys(GET.formValues).length === 0;
 
-    this.prepareMustache();
     this.restoreForm(GET.formValues); // Restore or create necessary object for form
     this.renderForm();
     if (!isEmpty) {
@@ -109,10 +145,18 @@ App.prototype.unregisterListeners = function() {
 
 /**
  * Do all Mustache cache parse
+ * Prepare the template for a signature
  */
-App.prototype.prepareMustache = function() {
-    Mustache.parse(TEMPLATE_FORM);
-    Mustache.parse(this.signatureTemplate);
+App.prototype.prepareMustache = function(signature) {
+    if (!signature) signature = this.currentSignature;
+
+    var templateSignature = this.getSignatureSetting('template.js', signature),
+        templateForm = this.getSignatureSetting('form.js', signature);
+
+    if (templateForm && templateSignature) {
+        Mustache.parse(templateForm);
+        Mustache.parse(templateSignature);
+    }
 }
 
 //#endregion
@@ -240,7 +284,7 @@ App.prototype.readGET = function() {
  * Render and show edition form
  */
 App.prototype.renderForm = function() {
-    document.getElementById(FORM_ID).innerHTML = Mustache.render(TEMPLATE_FORM, this.data);
+    document.getElementById(FORM_ID).innerHTML = Mustache.render(this.getSignatureSetting('template.js'), this.data);
     this.registerListeners();
 }
 
