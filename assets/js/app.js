@@ -294,7 +294,7 @@ App.prototype.renderForm = function() {
  * @param {Object} values Values to restore (GET or other object)
  */
 App.prototype.restoreForm = function(values) {
-    var fields = this.data.fields;
+    var fields = this.getSignatureSetting('fields');
     for (var n = 0; n < fields.length; n++) {
         var fieldName = fields[n].name;
         if (typeof values[fieldName] === "undefined") {

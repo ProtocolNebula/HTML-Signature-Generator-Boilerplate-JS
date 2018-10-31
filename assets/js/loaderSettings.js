@@ -40,7 +40,7 @@ var LoaderSettings = function() {
  */
 LoaderSettings.prototype.allFilesLoaded = function(template, files) {
     var filesLoaded = this.loadedFiles[template];
-    for (n = 0; n < files.length; n++) {
+    for (var n = 0; n < files.length; n++) {
         var file = files[n];
         if (filesLoaded[file] === undefined || filesLoaded[file] === null) {
             return false;
@@ -99,7 +99,7 @@ LoaderSettings.prototype.init = function() {
 
 LoaderSettings.prototype.loadTemplates = function() {
     var signaturesToLoad = cloneObject(SETTINGS.signatures);    
-    var callback = this.addSignatureLoaded;
+    var callback = this.addSignatureLoaded.bind(this);
     var totalSignatures = signaturesToLoad.length;
 
     if (totalSignatures === 0) {
@@ -133,7 +133,7 @@ LoaderSettings.prototype.getAllFilesFor = function(templateName) {
     var signatureFiles = this.signature_files;
     
     var files = [];
-    for (n = 0; n < signatureFiles.length; n++) {
+    for (var n = 0; n < signatureFiles.length; n++) {
         var file = signatureFiles[n];
         files.push(templateFolder + file);
     }
@@ -149,7 +149,6 @@ LoaderSettings.prototype.initApp = function() {
 
     // Instantiate the app
     APP = new App(SETTINGS);
-    APP.init();
 }
 
 /**
@@ -157,8 +156,11 @@ LoaderSettings.prototype.initApp = function() {
  * @param {string} template Template name
  */
 LoaderSettings.prototype.addSignatureLoaded = function(template) {
-    if (self.allFilesLoaded(template, this.signature_files)) {
+    if (this.allFilesLoaded(template, this.signature_files)) {
         APP.addSignatureSettings(template, this.loadedFiles[template]);
+        // if (!APP.inited) {
+        //     APP.init();
+        // }
     }
 }
 
