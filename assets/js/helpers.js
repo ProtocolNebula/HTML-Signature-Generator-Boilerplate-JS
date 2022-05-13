@@ -145,4 +145,9 @@ function copyText(element) {
         alert('Your browser is not compatible with text copy.');
     }
 }
+
+function preview(element) {
+    const newWindow = window.open();
+    newWindow.document.write(element.innerHTML);
+}
 //#endregion
