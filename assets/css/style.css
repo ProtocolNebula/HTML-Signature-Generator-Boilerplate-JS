@@ -10,3 +10,7 @@ h1 {
     max-width: 100%;
     overflow: auto;
 }
+
+.signature_container img {
+    box-sizing: content-box;
+}
